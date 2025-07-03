@@ -10,7 +10,7 @@ let Gameboard = (function () {
   };
 
   setPiece = (x, y, piece) => {
-    if (!isValidCoordinates(x, y)) {
+    if (!isValidCoordinates(x, y) || (board[y][x] !== " ")) {
       return false;
     }
     board[y][x] = piece;
