@@ -97,7 +97,7 @@ const GameState = (function () {
 
 const GameController = (function () {
   playRound = (x, y) => {
-    turnPlayer = Players.currentPlayer();
+    let turnPlayer = Players.currentPlayer();
     if (Gameboard.setPiece(x, y, turnPlayer.getPiece())) {
       if (GameState.check() === GameState.IN_PROGRESS) {
         Players.nextPlayer();
