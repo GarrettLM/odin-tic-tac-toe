@@ -3,6 +3,8 @@ const NUM_OF_COLS = 3;
 
 let Gameboard = (function () {
   let board = [[" ", " ", " "], [" ", " ", " "], [" ", " ", " "]];
+  let numFreeSpaces = NUM_OF_ROWS * NUM_OF_COLS;
+
   isValidCoordinates = (x, y) => {
     return ((x >= 0) && (x < NUM_OF_ROWS) && (y >= 0) && (y < NUM_OF_COLS));
   };
@@ -12,15 +14,22 @@ let Gameboard = (function () {
       return false;
     }
     board[y][x] = piece;
+    numFreeSpaces--;
     return true;
   };
+
   getPiece = (x, y) => {
     if (!isValidCoordinates(x, y)) {
       return "";
     }
     return board[y][x];
-  }
-  return {setPiece, getPiece};
+  };
+
+  getNumFreeSpaces = () => {
+    return numFreeSpaces;
+  };
+
+  return {setPiece, getPiece, getNumFreeSpaces};
 })();
 
 function Player(name, piece) {
@@ -66,11 +75,33 @@ const Players = (function () {
   return {addPlayer, currentPlayer, nextPlayer};
 })();
 
+const GameState = (function () {
+  const IN_PROGRESS = 0;
+  const DRAW = 1;
+  const WIN = 2;
+  let winner = null;
+
+  let check = () => {
+    if (Gameboard.getNumFreeSpaces() === 0) {
+      return DRAW;
+    }
+    return IN_PROGRESS;
+  };
+
+  let getWinner = () => {
+    return winner;
+  };
+
+  return {IN_PROGRESS, DRAW, WIN, check, getWinner};
+})();
+
 const GameController = (function () {
   playRound = (x, y) => {
     turnPlayer = Players.currentPlayer();
     if (Gameboard.setPiece(x, y, turnPlayer.getPiece())) {
-      Players.nextPlayer();
+      if (GameState.check() === GameState.IN_PROGRESS) {
+        Players.nextPlayer();
+      }
       refreshView();
     } else {
       console.warn(`Invalid move: ${x}, ${y}`);
@@ -80,7 +111,16 @@ const GameController = (function () {
 })();
 
 function refreshView() {
-  console.log(`\n\n${Players.currentPlayer().getName()}'s turn\n`)
+  let gameState = GameState.check();
+
+  if (gameState === GameState.IN_PROGRESS) {
+    console.log(`\n\n${Players.currentPlayer().getName()}'s turn\n`);
+  } else if (gameState === GameState.DRAW) {
+    console.log("Draw!");
+  } else if (gameState === GameState.WIN) {
+    console.log(`${gameState.getWinner()} won!`);
+  }
+
   for (let i = 0; i < NUM_OF_COLS; i++) {
     let row = "";
     for (let j = 0; j < NUM_OF_ROWS; j++) {
