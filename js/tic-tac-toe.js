@@ -66,6 +66,19 @@ const Players = (function () {
   return {addPlayer, currentPlayer, nextPlayer};
 })();
 
+const GameController = (function () {
+  playRound = (x, y) => {
+    turnPlayer = Players.currentPlayer();
+    if (Gameboard.setPiece(x, y, turnPlayer.getPiece())) {
+      Players.nextPlayer();
+      refreshView();
+    } else {
+      console.warn(`Invalid move: ${x}, ${y}`);
+    }
+  };
+  return {playRound};
+})();
+
 function refreshView() {
   console.log(`\n\n${Players.currentPlayer().getName()}'s turn\n`)
   for (let i = 0; i < NUM_OF_COLS; i++) {
