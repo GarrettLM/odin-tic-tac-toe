@@ -29,7 +29,35 @@ let Gameboard = (function () {
     return numFreeSpaces;
   };
 
-  return {setPiece, getPiece, getNumFreeSpaces};
+  let countConsecutiveMatchesRow = (y, piece) => {
+    if (y >= NUM_OF_ROWS) {
+      return 0;
+    }
+    let numMatches = 0;
+    for (let x = 0; x < NUM_OF_COLS; x++) {
+      if (board[y][x] !== piece) {
+        break;
+      }
+      numMatches++;
+    }
+    return numMatches;
+  };
+
+  let countConsecutiveMatchesCol = (x, piece) => {
+    if (x >= NUM_OF_COLS) {
+      return 0;
+    }
+    let numMatches = 0;
+    for (let y = 0; y < NUM_OF_ROWS; y++) {
+      if (board[y][x] !== piece) {
+        break;
+      }
+      numMatches++;
+    }
+    return numMatches;
+  };
+
+  return {setPiece, getPiece, getNumFreeSpaces, countConsecutiveMatchesRow, countConsecutiveMatchesCol};
 })();
 
 function Player(name, piece) {
@@ -80,12 +108,33 @@ const GameState = (function () {
   const DRAW = 1;
   const WIN = 2;
   let winner = null;
+  let state = IN_PROGRESS;
+
+  function checkForWin() {
+    let player = Players.currentPlayer();
+    for (let i = 0; i < NUM_OF_ROWS; i++) {
+      if (Gameboard.countConsecutiveMatchesRow(i, player.getPiece()) >= 3) {
+        winner = player;
+        return true;
+      }
+    }
+
+    for (let i = 0; i < NUM_OF_COLS; i++) {
+      if (Gameboard.countConsecutiveMatchesCol(i, player.getPiece()) >= 3) {
+        winner = player;
+        return true;
+      }
+    }
+    return false;
+  }
 
   let check = () => {
-    if (Gameboard.getNumFreeSpaces() === 0) {
-      return DRAW;
+    if (checkForWin()) {
+      state = WIN;
+    } else if (Gameboard.getNumFreeSpaces() === 0) {
+      state = DRAW;
     }
-    return IN_PROGRESS;
+    return state;
   };
 
   let getWinner = () => {
@@ -118,7 +167,7 @@ function refreshView() {
   } else if (gameState === GameState.DRAW) {
     console.log("Draw!");
   } else if (gameState === GameState.WIN) {
-    console.log(`${gameState.getWinner()} won!`);
+    console.log(`${GameState.getWinner().getName()} won!`);
   }
 
   for (let i = 0; i < NUM_OF_COLS; i++) {
